@@ -1,5 +1,5 @@
 from flask import Flask, jsonify
-from utils import *
+from utils import get_animal_by_id
 app = Flask(__name__)
 
 

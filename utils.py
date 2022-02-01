@@ -9,16 +9,21 @@ def get_data_from_additional_table(db, table):
     :return: список данных таблицы.
     """
     with sqlite3.connect(db) as connection:
+        result_dict = []
+        connection.row_factory = sqlite3.Row
         cursor = connection.cursor()
         query = f"SELECT * FROM {table}"
         cursor.execute(query)
         result = cursor.fetchall()
-        return result
+        for row in result:
+            result_dict.append(dict(row))
+        return result_dict
 
 
 def change_data_in_main_table(db, table, column, list_):
     """
-    Заменяет данные в ячейках заданной колонки исходной таблицы на индексы внешних ключей.
+    Заменяет данные в ячейках заданной колонки.
+    Используется для замены значений с пробелами в конце на соответствующие без пробелов.
     :param db: база данных животных.
     :param table: изменяемая таблица.
     :param column: колонка, в которой изменяем значения.
@@ -28,17 +33,16 @@ def change_data_in_main_table(db, table, column, list_):
         cursor = connection.cursor()
         for row in list_:
             query = (f"""UPDATE {table}
-                    SET {column} = {row[0]}
-                    WHERE {column} = '{row[1]}'
+                    SET {column} = '{row.get('name')}'
+                    WHERE {column} like '{row.get('name')}%' 
                     """)
             cursor.execute(query)
-        connection.commit()
+            connection.commit()
 
 
-additional_table_data = get_data_from_additional_table('test.db', 'animals_type')
-print(additional_table_data)
-change_data_in_main_table('test.db', 'animals', 'animal_type', additional_table_data)
-
+additional_table_data = get_data_from_additional_table('test.db', 'animals_colors')
+change_data_in_main_table('animal.db', 'animals', 'color1', additional_table_data)
+change_data_in_main_table('animal.db', 'animals', 'color2', additional_table_data)
 
 def get_animal_by_id(index_, db, table):
     """
@@ -75,12 +79,3 @@ def get_animal_by_id(index_, db, table):
             return found_animal_data
         else:
             return "Animal not found"
-
-# with sqlite3.connect('test.db') as connection:
-#     cursor = connection.cursor()
-#     query = (f"""UPDATE 'animals'
-#             SET animal_type = 1
-#             WHERE animal_type like 'Cat'
-#             """)
-#     cursor.execute(query)
-#     connection.commit()
