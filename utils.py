@@ -39,10 +39,11 @@ def change_data_in_main_table(db, table, column, list_):
             cursor.execute(query)
             connection.commit()
 
+#
+# additional_table_data = get_data_from_additional_table('test.db', 'animals_colors')
+# change_data_in_main_table('animal.db', 'animals', 'color1', additional_table_data)
+# change_data_in_main_table('animal.db', 'animals', 'color2', additional_table_data)
 
-additional_table_data = get_data_from_additional_table('test.db', 'animals_colors')
-change_data_in_main_table('animal.db', 'animals', 'color1', additional_table_data)
-change_data_in_main_table('animal.db', 'animals', 'color2', additional_table_data)
 
 def get_animal_by_id(index_, db, table):
     """
@@ -54,6 +55,7 @@ def get_animal_by_id(index_, db, table):
     """
 
     with sqlite3.connect(db) as connection:
+        connection.row_factory = sqlite3.Row
         cursor = connection.cursor()
         query = f"""SELECT * FROM {table}
                 WHERE [index] = {index_}
@@ -62,20 +64,6 @@ def get_animal_by_id(index_, db, table):
         result = cursor.fetchone()
 
         if result:
-            found_animal_data = {
-                "age_upon_outcome": result[1],
-                "animal_id": result[2],
-                "animal_type": result[3],
-                "name": result[4],
-                "breed": result[5],
-                "color1": result[6],
-                "color2": result[7],
-                "date_of_birth": result[8],
-                "outcome_subtype": result[9],
-                "outcome_type": result[10],
-                "outcome_month": result[11],
-                "outcome_year": result[12],
-            }
-            return found_animal_data
+            return dict(result)
         else:
             return "Animal not found"
